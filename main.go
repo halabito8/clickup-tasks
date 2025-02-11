@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,8 +11,6 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 var (
@@ -138,19 +137,30 @@ func isInProgressStatus(status string) bool {
 	return strings.Contains(statusLower, "progress") || strings.Contains(statusLower, "in progress")
 }
 
-func loadEnv() error {
-	if err := godotenv.Load(); err != nil {
-		return fmt.Errorf("error loading .env file: %v", err)
-	}
+func loadCredentials() error {
+	flag.StringVar(&apiKey, "api-key", "", "ClickUp API Key")
+	flag.StringVar(&spaceID, "space-id", "", "ClickUp Space ID")
 
-	apiKey = os.Getenv("CLICKUP_API_KEY")
+	// Also allow short versions of flags
+	flag.StringVar(&apiKey, "k", "", "ClickUp API Key (shorthand)")
+	flag.StringVar(&spaceID, "s", "", "ClickUp Space ID (shorthand)")
+
+	flag.Parse()
+
+	// Check environment variables if flags are not provided
 	if apiKey == "" {
-		return fmt.Errorf("CLICKUP_API_KEY is not set in .env file")
+		apiKey = os.Getenv("CLICKUP_API_KEY")
+	}
+	if spaceID == "" {
+		spaceID = os.Getenv("CLICKUP_SPACE_ID")
 	}
 
-	spaceID = os.Getenv("CLICKUP_SPACE_ID")
+	// Validate credentials
+	if apiKey == "" {
+		return fmt.Errorf("ClickUp API Key is required. Provide it via -api-key flag or CLICKUP_API_KEY environment variable")
+	}
 	if spaceID == "" {
-		return fmt.Errorf("CLICKUP_SPACE_ID is not set in .env file")
+		return fmt.Errorf("ClickUp Space ID is required. Provide it via -space-id flag or CLICKUP_SPACE_ID environment variable")
 	}
 
 	return nil
@@ -360,8 +370,14 @@ func main() {
 	printDivider("=", dividerWidth)
 	fmt.Println()
 
-	if err := loadEnv(); err != nil {
+	if err := loadCredentials(); err != nil {
 		fmt.Printf("Configuration error: %v\n", err)
+		fmt.Println("\nUsage:")
+		fmt.Println("  clickup-tasks -api-key=YOUR_API_KEY -space-id=YOUR_SPACE_ID")
+		fmt.Println("  clickup-tasks -k=YOUR_API_KEY -s=YOUR_SPACE_ID")
+		fmt.Println("\nYou can also set environment variables:")
+		fmt.Println("  CLICKUP_API_KEY=YOUR_API_KEY")
+		fmt.Println("  CLICKUP_SPACE_ID=YOUR_SPACE_ID")
 		os.Exit(1)
 	}
 
