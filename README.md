@@ -1,108 +1,119 @@
-# ClickUp Tasks Reporter
+# ClickUp Tasks Report Tool
 
 ## Overview
-This Go application fetches and displays tasks from ClickUp, organizing them based on status and priority. It retrieves tasks from multiple lists, categorizes them into "To Do", "In Progress", and "Completed", and sorts them by priority and due date.
+
+This is a Go-based CLI tool that fetches and organizes tasks from ClickUp using their API. The tool retrieves tasks from different lists, sorts them by priority and due date, and presents them in a structured table format in the terminal.
 
 ## Features
-- Fetches all lists and tasks from a ClickUp workspace.
-- Categorizes tasks based on their status (To Do, In Progress, Completed).
-- Sorts tasks by priority and due date.
-- Displays tasks in a structured table format.
+
+- Fetches tasks from ClickUp lists using the API.
+- Supports authentication via API key.
+- Categorizes tasks by status: **To Do**, **In Progress**, and **Completed**.
+- Sorts tasks based on priority and due date.
+- Displays tasks in a structured tabular format.
+- Provides environment variable support for API credentials.
 
 ## Prerequisites
-- [Go](https://go.dev/) (version 1.23 or later recommended)
+
+- Go (>=1.23)
 - A ClickUp API Key
-- A ClickUp Space ID
+- ClickUp Space ID
 
 ## Installation
+
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repository/clickup-tasks-reporter.git
-   cd clickup-tasks-reporter
+   git clone https://github.com/your-repo/clickup-task-reporter.git
+   cd clickup-task-reporter
    ```
-2. Install dependencies:
+
+2. Build the executable:
    ```sh
-   go mod tidy
+   go build -o clickup-tasks
    ```
 
-## Configuration
-Create a `.env` file in the root directory and add your ClickUp API key and Space ID:
+## Usage
 
-```
-CLICKUP_API_KEY=your_clickup_api_key
-CLICKUP_SPACE_ID=your_space_id
-```
-
-## Running the Application
-Run the following command to execute the program:
+### Running the tool with flags
 
 ```sh
- go run main.go
+./clickup-tasks -api-key=YOUR_CLICKUP_API_KEY -space-id=YOUR_SPACE_ID
 ```
 
-## How It Works
-1. Loads API credentials from `.env`.
-2. Fetches lists and tasks from ClickUp.
-3. Categorizes tasks based on their status:
-   - **Completed**: Tasks marked as complete.
-   - **In Progress**: Tasks containing "progress" in their status.
-   - **To Do**: All other tasks.
-4. Sorts tasks by priority (Urgent → Low) and due date (Soonest → Latest).
-5. Displays categorized tasks in a structured table format.
+Or using shorthand flags:
 
-## Task Sorting Criteria
-- **Priority (from highest to lowest)**:
-  - Urgent
-  - High
-  - Normal
-  - Low
-- **Due Date**:
-  - Tasks with an earlier due date appear first.
-  - Tasks without a due date are listed last.
+```sh
+./clickup-tasks -k=YOUR_CLICKUP_API_KEY -s=YOUR_SPACE_ID
+```
 
-## Example Output
+### Running the tool with environment variables
+
+You can set environment variables instead of using command-line flags:
+
+```sh
+export CLICKUP_API_KEY=YOUR_CLICKUP_API_KEY
+export CLICKUP_SPACE_ID=YOUR_SPACE_ID
+./clickup-tasks
+```
+
+## Output
+
+The tool will categorize tasks into three sections:
+
+1. **To Do Tasks** - Tasks that are yet to be worked on.
+2. **In Progress Tasks** - Tasks that are currently being worked on.
+3. **Completed Tasks** - Tasks that have been marked as finished.
+
+### Example Output
+
 ```
 ========================================
 ClickUp Tasks Report
 ========================================
 Fetching Tasks:
-------------------------------
+----------------------------------------
 Fetching tasks from list: Project Alpha
-Fetching tasks from list: Sprint Backlog
+Fetching tasks from list: Feature Requests
 
+========================================
 Task Summary:
-----------------------
-Completed Tasks: 5
-To Do Tasks: 12
-In Progress Tasks: 3
-----------------------
+------------
+Completed Tasks: 12
+To Do Tasks: 8
+In Progress Tasks: 5
+----------------------------------------
 
 Tasks by Status:
-==========================
 To Do Tasks:
---------------------------
-Task Name        List Name      Due Date    Priority  
-----------------------------------------------
-Fix UI Bug       Project Alpha  2024-02-15  High      
-Add API Testing  Sprint Backlog 2024-02-20  Normal    
---------------------------
-
-Tasks by List:
-==========================
-Sprint Backlog (3 tasks)
-~~~~~~~~~~~~~~~~~~~~~~~~
-Task Name        Due Date    Priority  
-----------------------------------------------
-Add API Testing  2024-02-20  Normal    
-----------------------------------------------
+Task Name        List              Due Date   Priority  
+------------------------------------------------------
+Task 1          Project Alpha     2024-02-15 High      
+Task 2          Feature Requests  2024-02-18 Normal    
+------------------------------------------------------
 ```
 
-## Error Handling
-- If the API key or space ID is missing, the program exits with an error.
-- If an API request fails, the error is displayed, and the program continues with available data.
+## Configuration & Customization
 
-## Dependencies
-- `github.com/joho/godotenv` (For loading environment variables)
+### API Credentials
+- API Key and Space ID can be passed as flags or set as environment variables.
+
+### Task Sorting
+- Tasks are sorted by **priority** first, then by **due date**.
+
+### ANSI Colors
+- Red: Urgent tasks
+- Yellow: High priority tasks
+- Blue: Normal priority tasks
+- No color: Low priority or undefined tasks
+
+## Error Handling
+If credentials are missing or the API request fails, the tool will display an appropriate error message.
 
 ## License
+
 This project is licensed under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you have improvements or bug fixes.
+
