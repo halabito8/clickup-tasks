@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -104,12 +105,13 @@ func parseDueDate(dateStr string) time.Time {
 		return time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
 	}
 
-	// ClickUp uses Unix timestamp in milliseconds
-	msec, err := time.Parse(time.RFC3339, dateStr)
+	msec, err := strconv.ParseInt(dateStr, 10, 64)
 	if err != nil {
+		fmt.Println(err)
 		return time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
 	}
-	return msec
+
+	return time.Unix(msec/1000, (msec%1000)*1000000).UTC()
 }
 
 func sortTasks(tasks []Task) {
