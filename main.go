@@ -116,16 +116,16 @@ func parseDueDate(dateStr string) time.Time {
 
 func sortTasks(tasks []Task) {
 	sort.Slice(tasks, func(i, j int) bool {
-		iPriority := getPriorityLevel(tasks[i].Priority)
-		jPriority := getPriorityLevel(tasks[j].Priority)
-
-		if iPriority != jPriority {
-			return iPriority < jPriority
-		}
-
 		iDue := parseDueDate(tasks[i].DueDate)
 		jDue := parseDueDate(tasks[j].DueDate)
-		return iDue.Before(jDue)
+
+		if !iDue.Equal(jDue) {
+			return iDue.Before(jDue)
+		}
+
+		iPriority := getPriorityLevel(tasks[i].Priority)
+		jPriority := getPriorityLevel(tasks[j].Priority)
+		return iPriority < jPriority
 	})
 }
 
