@@ -29,6 +29,7 @@ var (
 	colorRed    = "\033[31m"
 	colorYellow = "\033[33m"
 	colorBlue   = "\033[34m"
+	colorGreen  = "\033[32m"
 	colorReset  = "\033[0m"
 )
 
@@ -43,6 +44,7 @@ type Task struct {
 	List struct {
 		Name string `json:"name"`
 	} `json:"list"`
+	DateClosed string `json:"date_closed"`
 }
 
 type Priority struct {
@@ -365,6 +367,29 @@ func printTasksByList(tasks []Task, title string) {
 	fmt.Println()
 }
 
+func isCompletedThisWeek(task Task) bool {
+	if task.DateClosed == "" {
+		return false
+	}
+
+	msec, err := strconv.ParseInt(task.DateClosed, 10, 64)
+	if err != nil {
+		return false
+	}
+
+	closeDate := time.Unix(msec/1000, (msec%1000)*1000000).UTC()
+	now := time.Now().UTC()
+
+	// Get the start of the current week (Sunday)
+	weekStart := now.AddDate(0, 0, -int(now.Weekday()))
+	weekStart = time.Date(weekStart.Year(), weekStart.Month(), weekStart.Day(), 0, 0, 0, 0, time.UTC)
+
+	// Get the end of the current week (Saturday)
+	weekEnd := weekStart.AddDate(0, 0, 7)
+
+	return closeDate.After(weekStart) && closeDate.Before(weekEnd)
+}
+
 func main() {
 	dividerWidth := 80
 	printDivider("=", dividerWidth)
@@ -456,6 +481,20 @@ func main() {
 	if len(inProgressTasks) > 0 {
 		printTasksByList(inProgressTasks, "In Progress Tasks")
 	}
+
+	completedThisWeek := 0
+	for _, task := range completedTasks {
+		if isCompletedThisWeek(task) {
+			completedThisWeek++
+		}
+	}
+
+	printDivider("=", dividerWidth)
+	fmt.Println("\nWeekly Completion Summary:")
+	printDivider("-", 23)
+	fmt.Printf("%sTasks completed this week: %d%s\n", colorGreen, completedThisWeek, colorReset)
+	printDivider("-", dividerWidth)
+	fmt.Println()
 
 	printDivider("=", dividerWidth)
 	fmt.Println("End of Report")
